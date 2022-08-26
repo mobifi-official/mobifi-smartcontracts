@@ -76,11 +76,6 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         if (checkIfAddressHasMinterRole(msg.sender)) {
             _safeMint(to, tokenId);
         } else {
-            require(
-                msg.value <= price,
-                "Not enough balance to complete transaction."
-            );
-
             tokenAddress.transferFrom(msg.sender, address(this), price);
             _safeMint(to, tokenId);
         }
