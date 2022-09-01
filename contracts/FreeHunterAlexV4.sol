@@ -25,13 +25,16 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 // Functions
 // ------------------------------------------------------------------------------------------------------------------------
 
-// Function: The first function which is called when the smart contract is triggered. It initialise the smart-contact
+// ----------------------------------------------------------------------------------
+// Function: The first function which is called when the smart contract is triggered. 
+// It initialise the smart-contact
 // Input: 
 // Output:
+// ----------------------------------------------------------------------------------
 
 contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     
-    // Check wheather a particular user has is authorised to mint a MobiFi NFT 
+    // Identify if a particular user has been authorised to mint a MobiFi NFT 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     
     using Counters for Counters.Counter;
@@ -56,6 +59,13 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     {
         return super.supportsInterface(interfaceId);
     }
+
+    // ----------------------------------------------------------------------------------
+    // Function: It returns the URL of the NFT character. The images of the NFT charcaters
+    // are stored in Pinata, and Heroku is it used as a proxy to communicate with Pinata.
+    // Input: 
+    // Output: NFT character URL
+    // ----------------------------------------------------------------------------------
 
     function _baseURI() internal pure override returns (string memory) {
         return
