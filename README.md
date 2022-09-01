@@ -1,13 +1,12 @@
-# Sample Hardhat Project
+# A MobiFi NFT: The Alex Hunter
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## Park and Earn
+MobiFi offers a gamification feature to its customers. Every-time a parking service is used a customer earns reward points named greenz. The ability to earn greenz is directly related to the NFT character a customer holds. As a starting point for the game, MobiFi offers a Free NFT character to its customers named Free Alex Hunter. For every EUR is spent on parking service a customer earns one greenz. 
 
-Try running some of the following tasks:
+## Accelerate Earnings
+MobiFi also offers paid NFTs who have special skills, and allow customers to accelerate greez earnings.      
 
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+## Smart Contracts for the Alex Hunter
+There are two smart contracts which have been deployed into the Mumbai Polygon network. 
+The first one (i.e. FreeHunterAlexV4.sol) is referred to the Free Alex, and it facilitates the minting process and the permission to allow a MobiFi user to mint the character. The minting process can only be executed via the MobiFi mobile app for users who have successfully completed the registration process. 
+The second smart contract (i.e PaidHunterAlexV1.sol), facilitates the process of minting NFT who have special skills, and they accelerate the greenz earnings. 
