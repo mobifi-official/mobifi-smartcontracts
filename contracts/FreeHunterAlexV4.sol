@@ -1,4 +1,17 @@
+// ------------------------------------------------------------------------------------------------------------------------
+// Summary
+// ------------------------------------------------------------------------------------------------------------------------
+// 1. This particular smart contract is handling the minting, and the permission to mint the free Alex, 
+// an NFT which is offered to MobiFi users in order to be able to use the gamification feature offed within the mobile app. 
+// 
+// License
 // SPDX-License-Identifier: MIT
+
+
+// ------------------------------------------------------------------------------------------------------------------------
+// Libraries
+// ------------------------------------------------------------------------------------------------------------------------
+
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -7,8 +20,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+
+// ------------------------------------------------------------------------------------------------------------------------
+// Functions
+// ------------------------------------------------------------------------------------------------------------------------
+
+// Function: The first function which is called when the smart contract is triggered. It initialise the smart-contact
+// Input: 
+// Output:
+
 contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
+    
+    // Check wheather a particular user has is authorised to mint a MobiFi NFT 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
