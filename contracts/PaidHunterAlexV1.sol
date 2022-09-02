@@ -8,10 +8,12 @@
 // 
 // 2. Each user can mint multiple paid NFT characters, and use a different one every time he/she is parking.
 // 
- 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+// ------------------------------------------------------------------------------------------------------------------------
+// Libraries
+// ------------------------------------------------------------------------------------------------------------------------
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -19,27 +21,37 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+
+// ------------------------------------------------------------------------------------------------------------------------
+// Functions
+// ------------------------------------------------------------------------------------------------------------------------
+
 contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    // Total suplay of NFT
+    // Set the max supply of NFT
     uint256 public constant maxSupply = 1000;
 
     // ERC20 Token address
+    // For instance the token address of MoFi which is used to pay the NFT character 
     IERC20 private tokenAddress;
 
-    // MobiFi wallet address to receive nft
+    // MobiFi wallet address to receive MoFi which are stored in the smart-contract 
+    // every time a user mint a paid NFT offered by MobiFi
     address private mobiFiAddress;
 
     // floor price of this NFT
     uint256 public price;
 
+    // ???
     mapping(string => uint8) existingURIs;
-
+    
+    // List of addresses that have alredy minted an NFT 
     mapping(address => bool) private hasAlreadyMintedNFT;
 
+    // Executed automatically the first time the smart-contruct is deployed 
     constructor(
         address _tokenAddress,
         uint256 _price,
@@ -54,6 +66,7 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         mobiFiAddress = _mobiFiAddress;
     }
 
+    // ??? 
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -64,11 +77,25 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: It returns the URL for the NFT character metadata. 
+    // Heroku is it used as a proxy to communicate with MobiFi backend.
+    // Input: 
+    // Output: NFT character URL
+    // ----------------------------------------------------------------------------------
     function _baseURI() internal pure override returns (string memory) {
         return
             "https://mobifi-nft-metadata-server-3.herokuapp.com/api/v1/nft-metadata/paid-hunter-alex-v1/";
     }
 
+
+
+    // ----------------------------------------------------------------------------------
+    // Function: Minting an NFT character
+    // Input: 1. Wallet address of the NFT receiver 
+    //        2. Random NFT token ID 
+    // Output: 1. Which NFT token ID user gets
+    // ----------------------------------------------------------------------------------
     function mintNFT(address to, string memory uri)
         public
         payable
@@ -84,6 +111,10 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         _tokenIds.increment();
         existingURIs[uri] = 1;
 
+        // If you are authorised to mint, then you can mint paid NFT for free, otherwise you need to pay 
+        // Currenty this function is not used. 
+        // used for specific group of people who have been whitelisted manually by the contract deployer  
+        
         if (checkIfAddressHasMinterRole(msg.sender)) {
             _safeMint(to, tokenId);
         } else {
@@ -91,10 +122,17 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
             _safeMint(to, tokenId);
         }
 
+        // It will flag that an NFT has alredy been minted
         _setTokenURI(tokenId, uri);
         return tokenId;
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Allow user to mint NFT using mobifi mobile app. It will be executed by the 
+    //           admin 
+    // Input: 1. users wallet address 
+    // Output: 1. Grand permission to mint NFT 
+    // ----------------------------------------------------------------------------------
     function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, to);
     }
@@ -106,6 +144,12 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         revokeRole(MINTER_ROLE, from);
     }
 
+
+    // ----------------------------------------------------------------------------------
+    // Function: Check if a particular wallet address has minting role  
+    // Input: 1. User wallet address 
+    // Output: 1. TRUE/FLASE
+    // ---------------------------------------------------------------------------------- 
     function checkIfAddressHasMinterRole(address addressToCheck)
         public
         view
@@ -122,7 +166,12 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     {
         super._burn(tokenId);
     }
-
+    
+    // ----------------------------------------------------------------------------------
+    // Function: Gets token id and returns the NFT URI 
+    // Input: 1. Token ID   
+    // Output: 2. Full NFT token URI
+    // ----------------------------------------------------------------------------------  
     function tokenURI(uint256 tokenId)
         public
         view
@@ -131,7 +180,12 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     {
         return super.tokenURI(tokenId);
     }
-
+    
+    // ----------------------------------------------------------------------------------
+    // Function: Number of NFT minted by user 
+    // Input: 
+    // Output: 
+    // ----------------------------------------------------------------------------------  
     function count() public view returns (uint256) {
         return _tokenIds.current();
     }
@@ -147,7 +201,13 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     {
         return hasAlreadyMintedNFT[userAddress];
     }
-
+    
+    // ----------------------------------------------------------------------------------
+    // Function: Transfering the MoFis from smart-contract to the MobiFi wallet address 
+    // Input: 1. Manually has been insteret durring the contract deployment
+    // Output: 1. Transfer
+    // ---------------------------------------------------------------------------------- 
+    
     function withdraw() public payable onlyRole(DEFAULT_ADMIN_ROLE) {
         tokenAddress.transfer(
             mobiFiAddress,
