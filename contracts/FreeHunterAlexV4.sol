@@ -1,8 +1,9 @@
 // ------------------------------------------------------------------------------------------------------------------------
 // Summary
 // ------------------------------------------------------------------------------------------------------------------------
-// 1. This particular smart contract is handling the minting, and the permission to mint the free Alex, 
-// an NFT which is offered to MobiFi users in order to be able to use the gamification feature offed within the mobile app. 
+// 1. This particular smart contract is handling the minting, and the permission to mint the free Alex, which is  
+// an Free NFT offered by MobiFi to its users in order to enable them to use the gamification feature.
+// 2. Each user can Mint only one Free NFT which is going to be stored in a tangany managed wallet.
 // 
 // License
 // SPDX-License-Identifier: MIT
@@ -26,8 +27,12 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 // ------------------------------------------------------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------------
-// Function: The first function which is called when the smart contract is triggered. 
-// It initialise the smart-contact
+// Function: 
+// 1. The first function which is called when the smart contract is triggered. 
+// It initialises the smart-contact.
+// 2. The contract deployer is the person who can grand minting permissions to other users
+// Only users with minting permissions can get the Free Alex using the Mobifi mobile app
+// 
 // Input: 
 // Output:
 // ----------------------------------------------------------------------------------
@@ -45,8 +50,9 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     mapping(address => bool) private hasAlreadyMintedNFT;
 
     constructor() ERC721("FreeHunterAlexTestV4", "FHATV4") {
-        // Grant the contract deployer the default admin role: it will be able
-        // to grant and revoke any roles
+        
+        // Grants the contract deployer and ADMIN ROLE. Only ADMINS will be able to 
+        // grand minting permission to other users 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -61,8 +67,8 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     }
 
     // ----------------------------------------------------------------------------------
-    // Function: It returns the URL of the NFT character. The images of the NFT charcaters
-    // are stored in Pinata, and Heroku is it used as a proxy to communicate with Pinata.
+    // Function: It returns the URL for the NFT character metadata. 
+    // Heroku is it used as a proxy to communicate with MobiFi backend.
     // Input: 
     // Output: NFT character URL
     // ----------------------------------------------------------------------------------
@@ -72,6 +78,12 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
             "https://mobifi-nft-metadata-server-3.herokuapp.com/api/v1/nft-metadata/get-nft-metadata-with-token-id/";
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Minting an NFT character
+    // Input: 1. Wallet address of the NFT receiver 
+    //        2. Random NFT token ID 
+    // Output: 1. Which NFT token ID user gets
+    // ----------------------------------------------------------------------------------
     function mintNFT(address to, string memory uri)
         public
         onlyRole(MINTER_ROLE)
@@ -90,11 +102,22 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         hasAlreadyMintedNFT[to] = true;
         return tokenId;
     }
-
+    
+    // ----------------------------------------------------------------------------------
+    // Function: Allow user to mint NFT using mobifi mobile app. It will be executed by the 
+    //           admin 
+    // Input: 1. users wallet address 
+    // Output: 1. Grand permission to mint NFT 
+    // ----------------------------------------------------------------------------------
     function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, to);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Remove minting role  
+    // Input: 1. users wallet address 
+    // Output: 1. remove permission to mint the Free NFT 
+    // ----------------------------------------------------------------------------------
     function revokeMinterRole(address from)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
@@ -102,6 +125,11 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         revokeRole(MINTER_ROLE, from);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Check if a particular wallet address has minting role  
+    // Input: 1. User wallet address 
+    // Output: 1. TRUE/FLASE
+    // ----------------------------------------------------------------------------------  
     function checkIfAddressHasMinterRole(address addressToCheck)
         public
         view
@@ -110,8 +138,14 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         return hasRole(MINTER_ROLE, addressToCheck);
     }
 
+    
     // The following functions are overrides required by Solidity.
 
+    // ----------------------------------------------------------------------------------
+    // Function: Burn an NFT character 
+    // Input:   
+    // Output: 
+    // ----------------------------------------------------------------------------------  
     function _burn(uint256 tokenId)
         internal
         override(ERC721, ERC721URIStorage)
@@ -119,6 +153,11 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         super._burn(tokenId);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Gets token id and returns the NFT URI 
+    // Input: 1. Token ID   
+    // Output: 2. Full NFT token URI
+    // ----------------------------------------------------------------------------------  
     function tokenURI(uint256 tokenId)
         public
         view
@@ -128,6 +167,12 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         return super.tokenURI(tokenId);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Number of NFT minted by user 
+    // Input: 
+    // Output: 
+    // ----------------------------------------------------------------------------------  
+    
     function count() public view returns (uint256) {
         return _tokenIds.current();
     }
@@ -136,6 +181,14 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
         return existingURIs[uri] == 1;
     }
 
+
+    // ----------------------------------------------------------------------------------
+    // Function: Prevent the same user minting a second FREE NFT, only one 
+    // is allowed per user 
+    // Input: 1. wallet address 
+    // Output: 
+    // ----------------------------------------------------------------------------------  
+    
     function addressHasMintedNFT(address userAddress)
         public
         view
