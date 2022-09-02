@@ -1,3 +1,14 @@
+// ------------------------------------------------------------------------------------------------------------------------
+// Summary
+// ------------------------------------------------------------------------------------------------------------------------
+// 1. This particular smart contract is handling the minting, and the permission to mint the PAID Alex, which is  
+// an NFT offered by MobiFi to its users in order accelerate the earning of reward points (i.e. greenz) after each parking 
+// transaction. For example, when a user holds a Free NFT Alex he/she can earn 1 greenz for each dollar spent on parking.
+// In contrast when a user holds a paid NFT character each greenz awarded is multiplied by a percentage of 30%
+// 
+// 2. Each user can mint multiple paid NFT characters, and use a different one every time he/she is parking.
+// 
+ 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
