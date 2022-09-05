@@ -4,7 +4,8 @@
 MobiFi offers a gamification feature to its customers. Every-time an indoor parking service is used a customer earns reward points named greenz. The ability to earn more greenz is directly related to the NFT character a customer holds. As a starting point for the game, MobiFi offers a Free NFT character to its customers named Free Alex Hunter. For every EUR is spent on an indoor parking service a customer earns one greenz. 
 
 ## Accelerate Earnings
-MobiFi also offers paid NFTs who have special skills, and allow customers to accelerate greez earnings.      
+MobiFi also offers paid NFTs who have special skills, and allow customers to accelerate greez earnings.
+Users can buy the paid MobiFi NFT in the mobile app market place using MoFi token. MoFi tokens are awarded to users everytime they change level. 
 
 ## Smart Contracts for the Alex Hunter
 There are two smart-contracts which have been deployed into the Mumbai Polygon network. 
