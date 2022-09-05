@@ -1,12 +1,12 @@
 // ------------------------------------------------------------------------------------------------------------------------
 // Summary
 // ------------------------------------------------------------------------------------------------------------------------
-// 1. This particular smart contract is handling the minting, and the permission to mint the PAID Alex, which is  
+// 1. This particular smart-contract is handling the minting, and the permission to mint the PAID Alex, which is  
 // an NFT offered by MobiFi to its users in order accelerate the earning of reward points (i.e. greenz) after each parking 
 // transaction. For example, when a user holds a Free NFT Alex he/she can earn 1 greenz for each dollar spent on parking.
 // In contrast when a user holds a paid NFT character each greenz awarded is multiplied by a percentage of 30%
 // 
-// 2. Each user can mint multiple paid NFT characters, and use a different one every time he/she is parking.
+// 2. Each user can mint multiple paid NFT characters, and use a different one every time the parking service is used.
 // 
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
@@ -14,24 +14,44 @@ pragma solidity ^0.8.4;
 // ------------------------------------------------------------------------------------------------------------------------
 // Libraries
 // ------------------------------------------------------------------------------------------------------------------------
+
+// Provides a custruction standard for the ERC721/20 tokens 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+
+// Provides all fucntionality for transfering ownership 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+
+// Provided all functionality for access controll (e.g. grand perminssion to mint NFT)
 import "@openzeppelin/contracts/access/AccessControl.sol";
+
+// Provides functionality for tracking the number of NFT tokens (e.g. increments)
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 // ------------------------------------------------------------------------------------------------------------------------
 // Functions
 // ------------------------------------------------------------------------------------------------------------------------
 
+
+// ----------------------------------------------------------------------------------
+// Function: 
+// 1. The first function which is called when the smart-contract is triggered. 
+// It initialises the smart-contact.
+// 2. The contract deployer is the person who can grand minting permissions to other users
+// Only users with minting permissions can get the Free Alex using the Mobifi mobile app
+// 
+// Input: 
+// Output:
+// ----------------------------------------------------------------------------------
 contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    // Set the max supply of NFT
+    // Set the max supply for NFT
     uint256 public constant maxSupply = 1000;
 
     // ERC20 Token address
@@ -45,7 +65,7 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     // floor price of this NFT
     uint256 public price;
 
-    // ???
+    // A key-value pair of Token ID and its URL, prevents minting the same token a second time 
     mapping(string => uint8) existingURIs;
     
     // List of addresses that have alredy minted an NFT 
@@ -66,7 +86,11 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
         mobiFiAddress = _mobiFiAddress;
     }
 
-    // ??? 
+    // ----------------------------------------------------------------------------------
+    // Function: It is called internaly by the smart-contract the first time it is compliled 
+    // Input: 1. A unique hashcode for the smart-contact
+    // Output: 1. Boolean 
+    // ----------------------------------------------------------------------------------    
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -76,13 +100,16 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     {
         return super.supportsInterface(interfaceId);
     }
-
+    
+    
     // ----------------------------------------------------------------------------------
     // Function: It returns the URL for the NFT character metadata. 
-    // Heroku is it used as a proxy to communicate with MobiFi backend.
+    // Heroku is  used as a proxy to communicate with MobiFi backend. The backend will generate 
+    // a random NFT id 
     // Input: 
     // Output: NFT character URL
     // ----------------------------------------------------------------------------------
+    
     function _baseURI() internal pure override returns (string memory) {
         return
             "https://mobifi-nft-metadata-server-3.herokuapp.com/api/v1/nft-metadata/paid-hunter-alex-v1/";
@@ -96,6 +123,7 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     //        2. Random NFT token ID 
     // Output: 1. Which NFT token ID user gets
     // ----------------------------------------------------------------------------------
+    
     function mintNFT(address to, string memory uri)
         public
         payable
@@ -133,7 +161,8 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     // Input: 1. users wallet address 
     // Output: 1. Grand permission to mint NFT 
     // ----------------------------------------------------------------------------------
-    function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
+   
+   function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, to);
     }
 
@@ -159,7 +188,13 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     }
 
     // The following functions are overrides required by Solidity.
-
+    
+    // ----------------------------------------------------------------------------------
+    // Function: Removes an NFT character from circulation on the chain 
+    // Input: 1. Token ID 
+    // Output: 1. A record on the chain 
+    // ----------------------------------------------------------------------------------  
+   
     function _burn(uint256 tokenId)
         internal
         override(ERC721, ERC721URIStorage)
@@ -184,16 +219,28 @@ contract PaidHunterAlexTestV1 is ERC721, ERC721URIStorage, AccessControl {
     // ----------------------------------------------------------------------------------
     // Function: Number of NFT minted by user 
     // Input: 
-    // Output: 
+    // Output: 1. Current number of all NFTs minted under a specific smart-contract 
     // ----------------------------------------------------------------------------------  
     function count() public view returns (uint256) {
         return _tokenIds.current();
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: Does an NFT character owned by somebody else. Checks on the chain if an 
+    // existing URI (i.e. tokend ID) is owned by a wallet address 
+    // Input: 1. NFT token ID 
+    // Output: 1. Boolean
+    // ----------------------------------------------------------------------------------  
     function isContentOnwed(string memory uri) public view returns (bool) {
         return existingURIs[uri] == 1;
     }
 
+
+    // ----------------------------------------------------------------------------------
+    // Function: Prevents the same user minting a second FREE NFT, only one is allowed per user 
+    // Input: 1. wallet address 
+    // Output: 1. Boolean 
+    // ----------------------------------------------------------------------------------  
     function addressHasMintedNFT(address userAddress)
         public
         view
