@@ -1,7 +1,9 @@
 // ------------------------------------------------------------------------------------------------------------------------
-// To Do
+// ------------------------------------------------------------------------------------------------------------------------
+// To Do before mainnet
 // ------------------------------------------------------------------------------------------------------------------------
 // 1. Limit the number of free NFT that this contract can create, max supply 
+// 2. What does the function _burn(uint256 tokenId) return ?
 
 
 // ------------------------------------------------------------------------------------------------------------------------
@@ -9,7 +11,7 @@
 // ------------------------------------------------------------------------------------------------------------------------
 // 1. This particular smart contract is handling the minting, and the permission to mint the free Alex, which is  
 // an Free NFT offered by MobiFi to its users in order to enable them to use the gamification feature.
-// 2. Each user can Mint only one Free NFT which is going to be stored in a tangany managed wallet.
+// 2. Each user can Mint only one Free NFT which is going to be stored in a tangany (MobiFi managed) or metamask (user managed) wallet.
 // 
 // License
 // SPDX-License-Identifier: MIT
@@ -21,11 +23,20 @@
 
 pragma solidity ^0.8.4;
 
+// Provides a custruction standard for the ERC721 tokens 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+// Provides functionality for getting NFT character metadata URL 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+
+// Provides all fucntionality for transfering ownership 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+
+// Provided all functionality for access controll (e.g. grand perminssion to mint NFT)
 import "@openzeppelin/contracts/access/AccessControl.sol";
+
+// Provides functionality for tracking the number of NFT tokens (e.g. increments)
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 // ------------------------------------------------------------------------------------------------------------------------
@@ -48,20 +59,27 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     // Identify if a particular user has been authorised to mint a MobiFi NFT 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     
+    // Incremental counter of the number of NFT that have been minted 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    // A key-value pair of Token ID and its URL, prevents minting the same token a second time 
     mapping(string => uint8) existingURIs;
-
+    
+    // A list of wallets that have minted a free Alex  
     mapping(address => bool) private hasAlreadyMintedNFT;
-
-    constructor() ERC721("FreeHunterAlexTestV4", "FHATV4") {
-        
-        // Grants the contract deployer and ADMIN ROLE. Only ADMINS will be able to 
-        // grand minting permission to other users 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    
+    // Grants the contract deployer an ADMIN ROLE. 
+    // Only ADMINS will be able to grand minting permission to other users 
+    constructor() ERC721("FreeHunterAlexTestV4", "FHATV4") {   
+           _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // ----------------------------------------------------------------------------------
+    // Function: It is called internaly by the smart-contract the first time it is compliled 
+    // Input: 1. A unique hashcode for the smart-contact
+    // Output: 1. Boolean 
+    // ----------------------------------------------------------------------------------
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -74,7 +92,8 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
 
     // ----------------------------------------------------------------------------------
     // Function: It returns the URL for the NFT character metadata. 
-    // Heroku is it used as a proxy to communicate with MobiFi backend.
+    // Heroku is  used as a proxy to communicate with MobiFi backend. The backend will generate 
+    // a random NFT id 
     // Input: 
     // Output: NFT character URL
     // ----------------------------------------------------------------------------------
@@ -112,7 +131,7 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     // ----------------------------------------------------------------------------------
     // Function: Allow user to mint NFT using mobifi mobile app. It will be executed by the 
     //           admin 
-    // Input: 1. users wallet address 
+    // Input: 1. User wallet address 
     // Output: 1. Grand permission to mint NFT 
     // ----------------------------------------------------------------------------------
     function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -121,8 +140,8 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
 
     // ----------------------------------------------------------------------------------
     // Function: Remove minting role  
-    // Input: 1. users wallet address 
-    // Output: 1. remove permission to mint the Free NFT 
+    // Input: 1. User wallet address 
+    // Output: 1. Remove permission to mint the Free NFT 
     // ----------------------------------------------------------------------------------
     function revokeMinterRole(address from)
         public
@@ -148,9 +167,9 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     // The following functions are overrides required by Solidity.
 
     // ----------------------------------------------------------------------------------
-    // Function: Burn an NFT character 
-    // Input:   
-    // Output: 
+    // Function: Removes an NFT character from circulation on the chain 
+    // Input: 1. Token ID 
+    // Output: 1. A record on the chain 
     // ----------------------------------------------------------------------------------  
     function _burn(uint256 tokenId)
         internal
@@ -176,23 +195,30 @@ contract FreeHunterAlexTestV4 is ERC721, ERC721URIStorage, AccessControl {
     // ----------------------------------------------------------------------------------
     // Function: Number of NFT minted by user 
     // Input: 
-    // Output: 
+    // Output: 1. Current number of all NFTs minted under a specific smart-contract 
     // ----------------------------------------------------------------------------------  
     
     function count() public view returns (uint256) {
         return _tokenIds.current();
     }
 
+
+    // ----------------------------------------------------------------------------------
+    // Function: Does an NFT character owned by somebody else. Checks on the chain if an 
+    // existing URI (i.e. tokend ID) is owned by a wallet address 
+    // Input: 1. NFT token ID 
+    // Output: 1. Boolean
+    // ----------------------------------------------------------------------------------  
+    
     function isContentOnwed(string memory uri) public view returns (bool) {
         return existingURIs[uri] == 1;
     }
 
 
     // ----------------------------------------------------------------------------------
-    // Function: Prevent the same user minting a second FREE NFT, only one 
-    // is allowed per user 
+    // Function: Prevents the same user minting a second FREE NFT, only one is allowed per user 
     // Input: 1. wallet address 
-    // Output: 
+    // Output: 1. Boolean 
     // ----------------------------------------------------------------------------------  
     
     function addressHasMintedNFT(address userAddress)
