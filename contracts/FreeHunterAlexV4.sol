@@ -136,7 +136,7 @@ contract FreeHunterAlexTestV4 is
         require(existingURIs[uri] != 1, "ERROR_TOKEN_ALREADY_MINTED");
 
         uint256 supply = count();
-        require(supply <= maxSupply, "ALL_NFT_ALREADY_MINTED");
+        require(supply < maxSupply, "ALL_NFT_ALREADY_MINTED");
 
         require(!paused, "CONTRACT_MINTING_PAUSED");
         uint256 tokenId = _tokenIds.current();
@@ -155,6 +155,8 @@ contract FreeHunterAlexTestV4 is
     // Output: 1. Grand permission to mint NFT
     // ----------------------------------------------------------------------------------
     function grantMinterRole(address to) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 supply = count();
+        require(supply < maxSupply, "ALL_NFT_ALREADY_MINTED");
         grantRole(MINTER_ROLE, to);
     }
 
