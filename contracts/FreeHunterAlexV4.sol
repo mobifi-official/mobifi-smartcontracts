@@ -129,11 +129,15 @@ contract FreeHunterAlexTestV4 is
         onlyRole(MINTER_ROLE)
         returns (uint256)
     {
+        uint256 uriUint = st2num(uri);
+
         require(
             !hasAlreadyMintedNFT[to],
             "ERROR_ADDRESS_ALREADY_MINTED_CHARACTER"
         );
         require(existingURIs[uri] != 1, "ERROR_TOKEN_ALREADY_MINTED");
+
+        require(uriUint < maxSupply, "ERROR_NOT_CORRECT_URI_INPUT");
 
         uint256 supply = count();
         require(supply < maxSupply, "ALL_NFT_ALREADY_MINTED");
@@ -146,6 +150,20 @@ contract FreeHunterAlexTestV4 is
         _setTokenURI(tokenId, uri);
         hasAlreadyMintedNFT[to] = true;
         return tokenId;
+    }
+
+    function st2num(string memory numString) public pure returns (uint256) {
+        uint256 val = 0;
+        bytes memory stringBytes = bytes(numString);
+        for (uint256 i = 0; i < stringBytes.length; i++) {
+            uint256 exp = stringBytes.length - i;
+            bytes1 ival = stringBytes[i];
+            uint8 uval = uint8(ival);
+            uint256 jval = uval - uint256(0x30);
+
+            val += (uint256(jval) * (10**(exp - 1)));
+        }
+        return val;
     }
 
     // ----------------------------------------------------------------------------------
