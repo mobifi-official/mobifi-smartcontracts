@@ -50,7 +50,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 // Output:
 // ----------------------------------------------------------------------------------
 
-contract FreeHunterAlexTestV4 is
+contract MobiFiFreeNFTSmartContract is
     ERC721,
     Ownable,
     ERC721URIStorage,
