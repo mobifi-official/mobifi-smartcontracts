@@ -90,6 +90,16 @@ contract MobiFiFreeNFTSmartContract is
         setUriPrefix(_metadataUri);
     }
 
+    // ------------Modifiers----------------
+
+    // This modifier is used to check if the receiver of the NFT
+    // is also whitelisted
+    modifier onlyMinter(address receiver){
+        require(hasRole(MINTER_ROLE, receiver), "ERROR_ADDRESS_NOT_MINTER");
+        _;
+    }
+
+
     // TODO: function to transfer admin role to another wallet
 
     // ----------------------------------------------------------------------------------
@@ -120,6 +130,10 @@ contract MobiFiFreeNFTSmartContract is
 
     // ----------------------------------------------------------------------------------
     // Function: Minting an NFT character
+    // Description: This function is called by the MobiFi mobile app when a user wants to mint a free NFT
+    // Logic: 1. The onlyRole modifier is used to check if the user has been granted minting permission
+    //        2. The onlyMinter modifier is used to check if the receiver is also whitelisted
+    //        Both function caller and receiver must be whitelisted to prevent over minting
     // Input: 1. Wallet address of the NFT receiver
     //        2. Random NFT token ID
     // Output: 1. Which NFT token ID user gets
@@ -127,21 +141,28 @@ contract MobiFiFreeNFTSmartContract is
     function mintNFT(address to, string memory uri)
         public
         onlyRole(MINTER_ROLE)
+        onlyMinter(to)
         returns (uint256)
     {
         uint256 uriUint = st2num(uri);
 
+        // Check if the NFT token ID has been minted before
         require(
             !hasAlreadyMintedNFT[to],
             "ERROR_ADDRESS_ALREADY_MINTED_CHARACTER"
         );
+
+        // Check if the uri has been minted before
         require(existingURIs[uri] != 1, "ERROR_TOKEN_ALREADY_MINTED");
 
-        require(uriUint < maxSupply, "ERROR_NOT_CORRECT_URI_INPUT");
+        // Check if uriUint is larger than maxSupply
+//        require(uriUint <= maxSupply, "ERROR_NOT_CORRECT_URI_INPUT");
 
+        // Check if the max supply has been reached
         uint256 supply = count();
-        require(supply < maxSupply, "ALL_NFT_ALREADY_MINTED");
+        require(supply <= maxSupply, "ALL_NFT_ALREADY_MINTED");
 
+        // Check if minting process is paused or not
         require(!paused, "CONTRACT_MINTING_PAUSED");
         uint256 tokenId = _tokenIds.current();
         _tokenIds.increment();

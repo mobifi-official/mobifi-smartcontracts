@@ -10,18 +10,19 @@ describe("PaidHunterAlex contract", function () {
     let user1;
     let user2;
     let user3;
+    let user4;
     let addrs;
 
     beforeEach(async function () {
-        [owner, user1, user2, user3, ...addrs] = await ethers.getSigners();
+        [owner, user1, user2, user3, user4, ...addrs] = await ethers.getSigners();
         FreeHunterAlexContract = await ethers.getContractFactory("MobiFiFreeNFTSmartContract");
-        freeHunterAlex = await FreeHunterAlexContract.deploy("test", "test2", 100, 1);
+        freeHunterAlex = await FreeHunterAlexContract.deploy("test", "test2", 2, 1);
         await freeHunterAlex.deployed();
     });
 
     describe("Check default value at deployement", function () {
         it("Total supply should be 100", async function () {
-            expect(await freeHunterAlex.maxSupply()).to.equal(100);
+            expect(await freeHunterAlex.maxSupply()).to.equal(2);
         });
         it('should return toke name', async function () {
             expect(await freeHunterAlex.name()).to.equal("test");
@@ -76,8 +77,8 @@ describe("PaidHunterAlex contract", function () {
     describe("Check FreeHunterAlex contract for mint", async function () {
         it('should return true if user minted the NFT', async function () {
             await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
-            freeHunterAlex.connect(user1).mintNFT(user1.address, 1);
-            expect(freeHunterAlex.connect(user1).addressHasMintedNFT(user1.address)).to.equal(true);
+            freeHunterAlex.connect(user1).mintNFT(user1.address, "1");
+            expect(await freeHunterAlex.connect(user1).addressHasMintedNFT(user1.address)).to.equal(true);
         });
 
         it('should not allow same user to mint twice', async function () {
@@ -95,20 +96,19 @@ describe("PaidHunterAlex contract", function () {
         });
 
         it('should not allow users to mint more than max supply', async function () {
+            // grant access to multiple users
             await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
             await freeHunterAlex.connect(owner).grantMinterRole(user2.address);
             await freeHunterAlex.connect(owner).grantMinterRole(user3.address);
-            console.log("user1", await freeHunterAlex.checkIfAddressHasMinterRole(user1.address));
-            console.log("user2", await freeHunterAlex.checkIfAddressHasMinterRole(user2.address));
-            console.log("user3", await freeHunterAlex.checkIfAddressHasMinterRole(user3.address));
+            await freeHunterAlex.connect(owner).grantMinterRole(user4.address);
 
-            await freeHunterAlex.connect(user1).mintNFT(user1.address, "1");
-            console.log("user1 balance", await freeHunterAlex.balanceOf(user1.address));
-            console.log("user2 start");
+
+            // mint until max supply tokens
+            await freeHunterAlex.connect(user1).mintNFT(user1.address, "0");
             await freeHunterAlex.connect(user2).mintNFT(user2.address, "1");
-            console.log("user2 balance", await freeHunterAlex.balanceOf(user2.address));
-            await freeHunterAlex.connect(user3).mintNFT(user3.address, "1");
-            console.log("user3 balance", await freeHunterAlex.balanceOf(user3.address));
+            await freeHunterAlex.connect(user3).mintNFT(user3.address, "2");
+            await expect(freeHunterAlex.connect(user4).mintNFT(user4.address, "3")).to.be
+                .revertedWith("ALL_NFT_ALREADY_MINTED");
         });
 
         it('Should pause the mint if paused', async function () {
@@ -116,6 +116,19 @@ describe("PaidHunterAlex contract", function () {
             await freeHunterAlex.connect(owner).setPaused(true);
             await expect(freeHunterAlex.connect(user1).mintNFT(user1.address, 2)).to.be
                 .revertedWith('CONTRACT_MINTING_PAUSED');
+        });
+
+        it('Should only allow mint action if both users are minter', async function () {
+            await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
+            await freeHunterAlex.connect(owner).grantMinterRole(user2.address);
+            await freeHunterAlex.connect(user1).mintNFT(user2.address, "1");
+            expect(await freeHunterAlex.connect(user1).balanceOf(user2.address)).to.equal(1)
+        });
+
+        it('Should not allow mint action if one user is not minter', async function () {
+            await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
+            await expect(freeHunterAlex.connect(user1).mintNFT(user2.address, "1")).to.be
+                .revertedWith('ERROR_ADDRESS_NOT_MINTER');
         });
 
         it("should generate two same token ids", async function () {
