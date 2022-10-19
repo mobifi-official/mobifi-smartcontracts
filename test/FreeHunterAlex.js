@@ -16,7 +16,7 @@ describe("PaidHunterAlex contract", function () {
     beforeEach(async function () {
         [owner, user1, user2, user3, user4, ...addrs] = await ethers.getSigners();
         FreeHunterAlexContract = await ethers.getContractFactory("MobiFiFreeNFTSmartContract");
-        freeHunterAlex = await FreeHunterAlexContract.deploy("test", "test2", 2, 1);
+        freeHunterAlex = await FreeHunterAlexContract.deploy("test", "test2", 2, "mobifi.io");
         await freeHunterAlex.deployed();
     });
 
@@ -96,19 +96,9 @@ describe("PaidHunterAlex contract", function () {
         });
 
         it('should not allow users to mint more than max supply', async function () {
-            // grant access to multiple users
-            await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
-            await freeHunterAlex.connect(owner).grantMinterRole(user2.address);
-            await freeHunterAlex.connect(owner).grantMinterRole(user3.address);
             await freeHunterAlex.connect(owner).grantMinterRole(user4.address);
-
-
-            // mint until max supply tokens
-            await freeHunterAlex.connect(user1).mintNFT(user1.address, "0");
-            await freeHunterAlex.connect(user2).mintNFT(user2.address, "1");
-            await freeHunterAlex.connect(user3).mintNFT(user3.address, "2");
-            await expect(freeHunterAlex.connect(user4).mintNFT(user4.address, "3")).to.be
-                .revertedWith("ALL_NFT_ALREADY_MINTED");
+            await expect(freeHunterAlex.connect(user4).mintNFT(user4.address, "10")).to.be
+                .revertedWith("ERROR_NOT_CORRECT_URI_INPUT");
         });
 
         it('Should pause the mint if paused', async function () {

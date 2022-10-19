@@ -144,7 +144,8 @@ contract MobiFiFreeNFTSmartContract is
         onlyMinter(to)
         returns (uint256)
     {
-        uint256 uriUint = st2num(uri);
+        // Transform the string into a number (int)
+        uint256 uriCheckForRandomness = st2num(uri);
 
         // Check if the NFT token ID has been minted before
         require(
@@ -156,7 +157,9 @@ contract MobiFiFreeNFTSmartContract is
         require(existingURIs[uri] != 1, "ERROR_TOKEN_ALREADY_MINTED");
 
         // Check if uriUint is larger than maxSupply
-//        require(uriUint <= maxSupply, "ERROR_NOT_CORRECT_URI_INPUT");
+        // The reason to check is due to the randomness of NFT token ID
+        // We need to ensure that uri is within the range of maxSupply
+        require(uriCheckForRandomness <= maxSupply, "ERROR_NOT_CORRECT_URI_INPUT");
 
         // Check if the max supply has been reached
         uint256 supply = count();
