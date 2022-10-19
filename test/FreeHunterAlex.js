@@ -77,7 +77,7 @@ describe("PaidHunterAlex contract", function () {
         it('should return true if user minted the NFT', async function () {
             await freeHunterAlex.connect(owner).grantMinterRole(user1.address);
             freeHunterAlex.connect(user1).mintNFT(user1.address, 1);
-            expect(freeHunterAlex.connect(user1).checkIfAddressHasMintedNFT(user1.address)).to.equal(true);
+            expect(freeHunterAlex.connect(user1).addressHasMintedNFT(user1.address)).to.equal(true);
         });
 
         it('should not allow same user to mint twice', async function () {
@@ -101,13 +101,13 @@ describe("PaidHunterAlex contract", function () {
             console.log("user1", await freeHunterAlex.checkIfAddressHasMinterRole(user1.address));
             console.log("user2", await freeHunterAlex.checkIfAddressHasMinterRole(user2.address));
             console.log("user3", await freeHunterAlex.checkIfAddressHasMinterRole(user3.address));
-            console.log(user1.address, user2.address)
-            await freeHunterAlex.connect(user1).mintNFT(user1.address, 0);
+
+            await freeHunterAlex.connect(user1).mintNFT(user1.address, "1");
             console.log("user1 balance", await freeHunterAlex.balanceOf(user1.address));
             console.log("user2 start");
-            await freeHunterAlex.connect(user2).mintNFT(user2.address, 1);
+            await freeHunterAlex.connect(user2).mintNFT(user2.address, "1");
             console.log("user2 balance", await freeHunterAlex.balanceOf(user2.address));
-            await freeHunterAlex.connect(user3).mintNFT(user3.address, 2);
+            await freeHunterAlex.connect(user3).mintNFT(user3.address, "1");
             console.log("user3 balance", await freeHunterAlex.balanceOf(user3.address));
         });
 
