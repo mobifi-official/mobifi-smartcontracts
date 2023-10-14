@@ -21,19 +21,19 @@
 pragma solidity ^0.8.4;
 
 // Provides a custruction standard for the ERC721 tokens
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./token/ERC721/ERC721.sol";
 
 // Provides functionality for getting NFT character metadata URL
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "./token/ERC721/extensions/ERC721URIStorage.sol";
 
 // Provides all fucntionality for transfering ownership
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./access/Ownable.sol";
 
 // Provided all functionality for access controll (e.g. grand perminssion to mint NFT)
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./access/AccessControl.sol";
 
 // Provides functionality for tracking the number of NFT tokens (e.g. increments)
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "./utils/Counters.sol";
 
 // ------------------------------------------------------------------------------------------------------------------------
 // Functions
